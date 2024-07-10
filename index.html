@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOCX to Speech Converter</title>
+</head>
+<body>
+    <h1>DOCX to Speech Converter</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".docx" required>
+        <label for="language">Choose a language:</label>
+        <select name="language" id="language">
+            <option value="en">English (Indian)</option>
+            <option value="hi">Hindi</option>
+            <option value="ta">Tamil</option>
+            <option value="te">Telugu</option>
+            <option value="kn">Kannada</option>
+            <option value="ml">Malayalam</option>
+            <option value="gu">Gujarati</option>
+            <option value="mr">Marathi</option>
+            <option value="bn">Bengali</option>
+            <option value="pa">Punjabi</option>
+        </select>
+        <button type="submit">Upload and Convert</button>
+    </form>
+    <div id="result"></div>
+    <audio id="audioPlayer" controls style="display: none;"></audio>
+    <a id="downloadLink" style="display: none;">Download Audio</a>
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData();
+            const fileInput = document.querySelector('input[type="file"]');
+            const languageSelect = document.querySelector('select[name="language"]');
+            formData.append('file', fileInput.files[0]);
+            formData.append('language', languageSelect.value);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result').innerText = 'Conversion failed: ' + data.error;
+                    return;
+                }
+                document.getElementById('result').innerText = 'Conversion successful! Playing audio...';
+                const audioPlayer = document.getElementById('audioPlayer');
+                audioPlayer.src = data.url;
+                audioPlayer.style.display = 'block';
+                audioPlayer.play();
+
+                const downloadLink = document.getElementById('downloadLink');
+                downloadLink.href = data.url;
+                downloadLink.innerText = 'Download Audio';
+                downloadLink.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').innerText = 'Conversion failed!';
+            });
+        });
+    </script>
+</body>
+</html>
